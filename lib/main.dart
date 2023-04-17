@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:paper/models/note.dart';
 import 'package:paper/pages/home/home_page.dart';
 import 'package:paper/services/local_storage/local_storage_service.dart';
 import 'package:paper/services/settings/settings_service.dart';
@@ -8,6 +10,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // init local storage
   await LocalStorageService.init();
+  // init hive DB
+  await Hive.initFlutter();
+  Hive.registerAdapter(NoteAdapter());
+  await Hive.openBox<Note>("notesBox");
+  // run app
   runApp(const MyApp());
 }
 
