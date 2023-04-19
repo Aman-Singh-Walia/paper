@@ -4,8 +4,10 @@ import 'package:intl/intl.dart';
 import 'package:paper/models/note.dart';
 import 'package:paper/pages/note/note_workspace.dart';
 import 'package:paper/pages/note/view_note_page.dart';
+import 'package:paper/services/notes/notes_local_service.dart';
 import 'package:paper/widgets/action_sheet.dart';
 import 'package:paper/widgets/confirmation_dialog.dart';
+import 'package:paper/widgets/toast.dart';
 
 class NoteListTile extends StatelessWidget {
   final Note note;
@@ -49,10 +51,27 @@ class NoteListTile extends StatelessWidget {
           ActionSheetItem(
               title: note.favorite ? "Remove from favorite" : "Add to favorite",
               icon: const Icon(BootstrapIcons.heart),
-              onClick: () {
+              onClick: () async {
                 Navigator.pop(context);
-                // toggle note favorite
+                NotesLocalService.toggleFavorite(note);
               }),
+          ActionSheetItem(
+            title: "Copy",
+            onClick: () async {
+              Navigator.pop(context);
+              Note copy = Note(
+                  title: note.title,
+                  content: note.content,
+                  favorite: false,
+                  modifiedOn: DateTime.now(),
+                  createdOn: DateTime.now());
+              await NotesLocalService.createNote(copy);
+              if (context.mounted) {
+                showToast(context, "Copy created");
+              }
+            },
+            icon: const Icon(BootstrapIcons.files),
+          ),
           ActionSheetItem(
               title: "Delete",
               isDestructive: true,
@@ -70,7 +89,7 @@ class NoteListTile extends StatelessWidget {
                   ),
                 );
                 if (confirmed == true) {
-                  // delete note
+                  NotesLocalService.deleteNote(note);
                 }
               }),
         ]);

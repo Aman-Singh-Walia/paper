@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:paper/models/note.dart';
+import 'package:paper/services/notes/notes_local_service.dart';
 import 'package:paper/services/settings/settings_service.dart';
 import 'package:paper/widgets/category_bar.dart';
 import 'package:paper/widgets/no_item.dart';
@@ -21,30 +23,7 @@ class _HomeTabState extends State<HomeTab> {
     "No General Notes"
   ];
 
-  List<Note> notesList = [
-    Note(
-        title:
-            "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quo architecto sit expedita magnam sint. Consequatur impedit sed, esse nemo, veniam et nihil enim culpa quo atque, provident suscipit aliquid inventore?",
-        content:
-            "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quo architecto sit expedita magnam sint. Consequatur impedit sed, esse nemo, veniam et nihil enim culpa quo atque, provident suscipit aliquid inventore?",
-        favorite: false,
-        modifiedOn: DateTime.now(),
-        createdOn: DateTime.now()),
-    Note(
-        title: "title2",
-        content:
-            "Lorem, ipsum dolor sit amet consectetur adipisicing elit. Debitis quos laborum voluptates excepturi ratione quasi ea consequatur expedita id mollitia. Deleniti illo facere minus quam nisi magnam perspiciatis sit enim.",
-        favorite: false,
-        modifiedOn: DateTime.now(),
-        createdOn: DateTime.now()),
-    Note(
-        title: "title 3",
-        content:
-            "Lorem, ipsum dolor sit amet consectetur adipisicing elit. Debitis quos laborum voluptates excepturi ratione quasi ea consequatur expedita id mollitia. Deleniti illo facere minus quam nisi magnam perspiciatis sit enim.",
-        favorite: true,
-        modifiedOn: DateTime.now(),
-        createdOn: DateTime.now()),
-  ];
+  List<Note> notesList = [];
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -58,19 +37,36 @@ class _HomeTabState extends State<HomeTab> {
           },
           selectedIndex: selectedCategoryIndex,
         ),
-        notesList.isEmpty
-            ? Expanded(
-                child: NoItem(
-                  msg: noItemMsgs[selectedCategoryIndex],
-                ),
-              )
-            : ValueListenableBuilder(
-                valueListenable: SettingsService.viewMode,
-                builder: (context, viewModeVal, child) {
-                  return viewModeVal == "grid"
-                      ? NotesGridView(notesList: notesList)
-                      : NotesListView(notesList: notesList);
-                })
+        ValueListenableBuilder(
+            valueListenable: NotesLocalService.notesBox.listenable(),
+            builder: (context, notesBox, child) {
+              if (selectedCategoryIndex == 0) {
+                notesList = NotesLocalService.getAllNotes();
+              }
+
+              if (selectedCategoryIndex == 1) {
+                notesList = NotesLocalService.getFavoriteNotes();
+              }
+
+              if (selectedCategoryIndex == 2) {
+                notesList = NotesLocalService.getGeneralNotes();
+              }
+              return notesList.isEmpty
+                  ? Expanded(
+                      child: NoItem(
+                        msg: noItemMsgs[selectedCategoryIndex],
+                      ),
+                    )
+                  : ValueListenableBuilder(
+                      valueListenable: SettingsService.viewMode,
+                      builder: (context, viewModeVal, child) {
+                        return viewModeVal == "grid"
+                            ? Expanded(
+                                child: NotesGridView(notesList: notesList))
+                            : Expanded(
+                                child: NotesListView(notesList: notesList));
+                      });
+            })
       ],
     );
   }

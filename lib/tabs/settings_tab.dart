@@ -1,8 +1,10 @@
 import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:paper/services/local_storage/local_storage_service.dart';
+import 'package:paper/services/notes/notes_local_service.dart';
 import 'package:paper/services/settings/settings_service.dart';
 import 'package:paper/widgets/confirmation_dialog.dart';
+import 'package:paper/widgets/toast.dart';
 
 class SettingsTab extends StatefulWidget {
   const SettingsTab({super.key});
@@ -99,6 +101,10 @@ class _SettingsTabState extends State<SettingsTab> {
             const SettingTitle(title: "Data"),
             ListTile(
               onTap: () async {
+                if (NotesLocalService.notesBox.isEmpty) {
+                  showToast(context, "Nothing to clear");
+                  return;
+                }
                 final confirmed = await showDialog(
                   context: context,
                   builder: (context) => const ConfirmationDialog(
@@ -112,6 +118,10 @@ class _SettingsTabState extends State<SettingsTab> {
                 );
                 if (confirmed == true) {
                   //clear data
+                  await NotesLocalService.clearData();
+                  if (context.mounted) {
+                    showToast(context, "Data cleared successfully");
+                  }
                 }
               },
               textColor: const Color(0xFFFF3B30),

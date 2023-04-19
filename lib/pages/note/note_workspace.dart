@@ -1,6 +1,7 @@
 import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:paper/models/note.dart';
+import 'package:paper/services/notes/notes_local_service.dart';
 import 'package:paper/utils/page_navigation.dart';
 import 'package:paper/widgets/toast.dart';
 
@@ -38,7 +39,6 @@ class _NoteWorkspaceState extends State<NoteWorkspace> {
         actions: [
           IconButton(
               onPressed: () {
-
                 setState(() {
                   readerMode = !readerMode;
                 });
@@ -55,12 +55,28 @@ class _NoteWorkspaceState extends State<NoteWorkspace> {
 
                 // check if editing existing note
                 if (widget.note != null) {
-                  //  edit note
+                  widget.note!.title = titleController.text.trim();
+                  widget.note!.content = contentController.text;
+                  widget.note!.modifiedOn = DateTime.now();
+                  await widget.note!.save();
+                  if (context.mounted) {
+                    goBack(context);
+                  }
                   return;
                 }
                 // check if not editing existing note
                 if (widget.note == null) {
                   // create new note
+                  Note newNote = Note(
+                      title: titleController.text.trim(),
+                      content: contentController.text,
+                      favorite: false,
+                      modifiedOn: DateTime.now(),
+                      createdOn: DateTime.now());
+                  await NotesLocalService.createNote(newNote);
+                  if (context.mounted) {
+                    goBack(context);
+                  }
                   return;
                 }
                 // save note
@@ -85,18 +101,25 @@ class _NoteWorkspaceState extends State<NoteWorkspace> {
                 contentPadding: EdgeInsets.all(8.0),
                 counterText: ""),
           ),
-          Flexible(
+          Expanded(
             child: TextField(
               readOnly: readerMode,
               keyboardType: TextInputType.multiline,
               textInputAction: TextInputAction.newline,
               controller: contentController,
               maxLines: null,
-              decoration: const InputDecoration(
-                  filled: false,
+              minLines: null,
+              expands: true,
+              textAlign: TextAlign.start,
+              textAlignVertical: TextAlignVertical.top,
+              decoration: InputDecoration(
                   hintText: "Details...",
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.all(8.0)),
+                  filled: true,
+                  fillColor: Colors.grey.withAlpha(20),
+                  border: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(8.0)),
+                  contentPadding: const EdgeInsets.all(8.0)),
             ),
           )
         ]),
