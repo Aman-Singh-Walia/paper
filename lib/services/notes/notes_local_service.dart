@@ -38,4 +38,20 @@ class NotesLocalService {
         allNotes.where((element) => element.favorite == false).toList();
     return generalNotes;
   }
+
+// sort notes list
+ static sortByDateModified(List<Note> unsortedList) {
+  // show the latest modified note on top
+    unsortedList.sort((a, b) => b.modifiedOn.compareTo(a.modifiedOn));
+  }
+
+  static sortByDateCreated(List<Note> unsortedList) {
+    // show the latest created note on top
+    unsortedList.sort((a, b) => b.createdOn.compareTo(a.createdOn));
+  }
+
+ static sortByTitle(List<Note> unsortedList) {
+  // sort notes in a to z form
+    unsortedList.sort((a, b) => a.title.compareTo(b.title));
+  }
 }
